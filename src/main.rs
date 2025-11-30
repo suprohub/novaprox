@@ -1,6 +1,6 @@
 use anyhow::{Context as _, Result};
 use clap::Parser;
-use futures::{FutureExt as _, StreamExt as _, TryFutureExt as _, stream};
+use futures::{StreamExt as _, TryFutureExt as _, stream};
 use log::Level;
 use reqwest::{Client, ClientBuilder};
 use std::{

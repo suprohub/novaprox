@@ -4,6 +4,8 @@ use serde_json::{Value, json};
 
 use crate::proxy_config::ProxyConfig;
 
+/// # Errors
+/// Will result error if proxy config is invalid
 pub fn generate_xray_config(proxies: &[ProxyConfig], base_port: usize) -> Result<String> {
     let mut inbounds = Vec::new();
     let mut outbounds = Vec::new();

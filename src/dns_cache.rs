@@ -23,6 +23,8 @@ impl DnsCache {
         }
     }
 
+    /// # Errors
+    /// Return error if failed to read file
     pub fn load_cache(&mut self) -> Result<HashMap<String, (IpAddr, bool)>> {
         if !Path::new(&self.cache_file).exists() {
             return Ok(HashMap::new());
@@ -54,6 +56,8 @@ impl DnsCache {
         self.cache.insert(domain, (ip, true)).map(|(ip, _)| ip)
     }
 
+    /// # Errors
+    /// Return error if failed to save file
     pub fn save(&self) -> Result<()> {
         let content = self
             .cache
