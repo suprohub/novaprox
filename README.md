@@ -6,32 +6,32 @@ This repository contains free v2ray (xray) configs that are 99.9% alive and no d
 ## Subscribitions
 Primary:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/primary.txt
 ```
 
 All:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/all.txt
 ```
 
 Vless:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/vless.txt
 ```
 
 Vmess:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/vmess.txt
 ```
 
 Shadowsocks:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/ss.txt
 ```
 
 Trojan:
 ```
-
+https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/trojan.txt
 ```
 
 ## License
