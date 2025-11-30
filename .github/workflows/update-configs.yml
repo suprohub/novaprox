@@ -18,11 +18,11 @@ jobs:
       - name: Install Xray
         run: |
           # Download and install Xray
-          wget -O Xray-linux-64.zip "$(wget -qO- https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -oP '"browser_download_url":\s*"\K[^"]*' | grep 'Xray-linux-64.zip' | head -n1)"
-          unzip Xray-linux-64.zip
+          wget -q -O Xray-linux-64.zip "$(wget -qO- https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -oP '"browser_download_url":\s*"\K[^"]*' | grep 'Xray-linux-64.zip' | head -n1)"
+          unzip -o Xray-linux-64.zip
           sudo mv xray /usr/local/bin/
           sudo chmod +x /usr/local/bin/xray
-          rm Xray-linux-64.zip geoip.dat geosite.dat
+          rm -f Xray-linux-64.zip LICENSE README.md
           
           # Verify installation
           xray -version
@@ -67,6 +67,7 @@ jobs:
 
       - name: Create primary config (first 10 VLESS)
         run: |
+          mkdir -p sub
           head -n 10 sub/vless.txt > sub/primary.txt
 
       - name: Create all configs combined
@@ -81,7 +82,8 @@ jobs:
         id: emoji
         run: |
           EMOJIS=("⚡" "🔥" "✨" "🚀" "🌟" "🔧")
-          echo "emoji=${EMOJIS[$RANDOM % ${#EMOJIS[@]}]}" >> $GITHUB_OUTPUT
+          SELECTED_EMOJI=${EMOJIS[$((RANDOM % ${#EMOJIS[@]}))]}
+          echo "emoji=$SELECTED_EMOJI" >> $GITHUB_OUTPUT
 
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v7
