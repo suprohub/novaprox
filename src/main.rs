@@ -30,6 +30,9 @@ const CONFIG_FILE: &str = "xconf.json";
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    #[arg(long, default_value = "info")]
+    log_level: String,
+
     #[arg(short, long, default_value = "vless")]
     scheme: String,
 
@@ -85,9 +88,9 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    simple_logger::init_with_level(Level::Info).context("Logger initialization failed")?;
-
     let args = Args::parse();
+    simple_logger::init_with_level(Level::from_str(&args.log_level.to_uppercase())?).context("Logger initialization failed")?;
+
     let param_filters = parse_param_filters(&args.whitelist_params);
     let request_timeout = Duration::from_millis(args.request_timeout_ms);
 
@@ -378,7 +381,10 @@ async fn test_proxy_chunk(
                     .await
                     .ok()
                     .filter(|response| response.status().is_success())
-                    .map(|_| proxy.clone())
+                    .map(|_| {
+                        log::debug!("Founded working proxy: {}", proxy.address);
+                        proxy.clone()
+                    })
             }
         })
         .buffer_unordered(max_concurrent_checks)

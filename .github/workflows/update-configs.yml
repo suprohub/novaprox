@@ -39,6 +39,7 @@ jobs:
       - name: Update VLESS configs
         run: |
           ./target/release/novaprox \
+            --log-level trace \
             --ping-count 0 \
             --chunk-size 50 \
             --max-concurrent-checks 20 \
@@ -50,6 +51,7 @@ jobs:
       - name: Update VMess configs
         run: |
           ./target/release/novaprox \
+            --log-level trace \
             --ping-count 0 \
             --chunk-size 50 \
             --max-concurrent-checks 20 \
@@ -60,6 +62,7 @@ jobs:
       - name: Update Shadowsocks configs
         run: |
           ./target/release/novaprox \
+            --log-level trace \
             --ping-count 0 \
             --chunk-size 50 \
             --max-concurrent-checks 20 \
@@ -70,6 +73,7 @@ jobs:
       - name: Update Trojan configs
         run: |
           ./target/release/novaprox \
+            --log-level trace \
             --ping-count 0 \
             --chunk-size 50 \
             --max-concurrent-checks 20 \
