@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     simple_logger::init_with_level(Level::from_str(&args.log_level.to_uppercase())?).context("Logger initialization failed")?;
 
-    let param_filters = parse_param_filters(&args.whitelist_params);
+    let param_filters = parse_param_filters(if args.whitelist_params == "none" { "" } else { &args.whitelist_params });
     let request_timeout = Duration::from_millis(args.request_timeout_ms);
 
     let sources_content = args
