@@ -1,4 +1,2 @@
-vmess://d8fd8955-78db-49ba-d86f-3e4729f6ac4d@208.76.223.218:40433#Novaprox - 1 [0ms]
-vmess://e7c302f3-90d6-42dd-9d7d-94a3683a3707@146.56.112.110:8888#Novaprox - 2 [0ms]
-vmess://41a7089a-040b-4538-8b8d-010902405bde@140.238.2.250:443#Novaprox - 3 [0ms]
-vmess://469e0b31-30c3-4dab-800d-711232634ce1@216.227.168.157:45235#Novaprox - 4 [0ms]
+vmess://e7c302f3-90d6-42dd-9d7d-94a3683a3707@146.56.112.110:8888#Novaprox - 1 [0ms]
+vmess://d8fd8955-78db-49ba-d86f-3e4729f6ac4d@208.76.223.218:40433#Novaprox - 2 [0ms]
