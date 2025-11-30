@@ -61,6 +61,9 @@ struct Args {
     #[arg(long, default_value_t = 100)]
     ping_delay: u64,
 
+    #[arg(long, default_value_t = 6)]
+    ping_count: usize,
+
     #[arg(long, default_value_t = 1000)]
     request_timeout_ms: u64,
 
@@ -124,30 +127,36 @@ async fn main() -> Result<()> {
 
     log::info!("Resolved {} proxies", resolved_proxies.len());
 
-    let pinged_proxies = ping_proxies(
-        resolved_proxies,
-        args.ping_timeout_ms,
-        args.ping_delay,
-        args.max_concurrent_pings,
-        1,
-    )
-    .await;
+    let pinged_proxies = if args.ping_count > 0 {
+        let pinged_proxies = ping_proxies(
+            resolved_proxies,
+            args.ping_timeout_ms,
+            args.ping_delay,
+            args.max_concurrent_pings,
+            1,
+        )
+        .await;
 
-    log::info!(
-        "Pinged {} proxies, now getting average ping",
-        pinged_proxies.len()
-    );
+        log::info!(
+            "Pinged {} proxies, now getting average ping",
+            pinged_proxies.len()
+        );
 
-    let pinged_proxies = ping_proxies(
-        pinged_proxies,
-        args.ping_timeout_ms,
-        args.ping_delay,
-        args.max_concurrent_pings,
-        5,
-    )
-    .await;
+        let pinged_proxies = ping_proxies(
+            pinged_proxies,
+            args.ping_timeout_ms,
+            args.ping_delay,
+            args.max_concurrent_pings,
+            args.ping_count - 1,
+        )
+        .await;
 
-    log::info!("Pinged {} proxies with average ping", pinged_proxies.len());
+        log::info!("Pinged {} proxies with average ping", pinged_proxies.len());
+
+        pinged_proxies
+    } else {
+        resolved_proxies.into_iter().collect::<Vec<_>>()
+    };
 
     let working_proxies = test_proxies_in_chunks(
         &pinged_proxies,
