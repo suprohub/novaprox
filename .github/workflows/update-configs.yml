@@ -41,8 +41,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             --ping-count 0 \
-            --chunk-size 150 \
-            --max-concurrent-checks 50 \
+            --chunk-size 100 \
+            --max-concurrent-checks 25 \
             --scheme vless \
             --sources-files sources/sources-vless.txt \
             --out-file sub/vless.txt \
@@ -53,8 +53,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             --ping-count 0 \
-            --chunk-size 150 \
-            --max-concurrent-checks 50 \
+            --chunk-size 100 \
+            --max-concurrent-checks 25 \
             --scheme vmess \
             --sources-files sources/sources-vmess.txt \
             --out-file sub/vmess.txt
@@ -64,8 +64,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             --ping-count 0 \
-            --chunk-size 150 \
-            --max-concurrent-checks 50 \
+            --chunk-size 100 \
+            --max-concurrent-checks 25 \
             --scheme ss \
             --sources-files sources/sources-ss.txt \
             --out-file sub/ss.txt
@@ -75,8 +75,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             --ping-count 0 \
-            --chunk-size 150 \
-            --max-concurrent-checks 50 \
+            --chunk-size 100 \
+            --max-concurrent-checks 25 \
             --scheme trojan \
             --sources-files sources/sources-trojan.txt \
             --out-file sub/trojan.txt
