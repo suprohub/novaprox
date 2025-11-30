@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/trojan.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/trojan.txt
