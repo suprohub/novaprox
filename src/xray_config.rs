@@ -55,7 +55,7 @@ fn create_outbound(proxy: &ProxyConfig, index: usize) -> Result<Option<Value>> {
     let outbound = match proxy.protocol.as_str() {
         "http" | "https" => create_http_outbound(proxy, index),
         "socks" | "socks5" => create_socks_outbound(proxy, index),
-        "shadowsocks" => create_shadowsocks_outbound(proxy, index),
+        "ss" | "shadowsocks" => create_shadowsocks_outbound(proxy, index),
         "trojan" => create_trojan_outbound(proxy, index),
         "vless" => create_vless_outbound(proxy, index),
         "vmess" => create_vmess_outbound(proxy, index),

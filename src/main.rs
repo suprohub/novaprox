@@ -313,6 +313,7 @@ async fn test_proxies_in_chunks(
                 stdout.read_to_string(&mut out).await?;
                 log::warn!("Stdout: {out}");
             }
+            continue;
         }
 
         let working_chunk =
