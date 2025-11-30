@@ -15,6 +15,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Xray
+        run: |
+          # Download and install Xray
+          wget -O Xray-linux-64.zip "$(wget -qO- https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep -oP '"browser_download_url":\s*"\K[^"]*' | grep 'Xray-linux-64.zip' | head -n1)"
+          unzip Xray-linux-64.zip
+          sudo mv xray /usr/local/bin/
+          sudo chmod +x /usr/local/bin/xray
+          rm Xray-linux-64.zip geoip.dat geosite.dat
+          
+          # Verify installation
+          xray -version
+
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -68,7 +80,7 @@ jobs:
       - name: Generate random emoji
         id: emoji
         run: |
-          EMOJIS=("⚡" "🔥" "✨" "🚀" "🌟" "🐳" "🔧" "🌐" "🌀" "💡" "🐈" "🗿" "🧪")
+          EMOJIS=("⚡" "🔥" "✨" "🚀" "🌟" "🔧")
           echo "emoji=${EMOJIS[$RANDOM % ${#EMOJIS[@]}]}" >> $GITHUB_OUTPUT
 
       - name: Commit and push changes
