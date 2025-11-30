@@ -6,7 +6,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"
 
 jobs:
   update-configs:
@@ -39,10 +39,10 @@ jobs:
       - name: Update VLESS configs
         run: |
           ./target/release/novaprox \
-            --log-level trace \
+            --log-level debug \
             --ping-count 0 \
-            --chunk-size 50 \
-            --max-concurrent-checks 20 \
+            --chunk-size 150 \
+            --max-concurrent-checks 50 \
             --scheme vless \
             --sources-files sources/sources-vless.txt \
             --out-file sub/vless.txt \
@@ -51,10 +51,10 @@ jobs:
       - name: Update VMess configs
         run: |
           ./target/release/novaprox \
-            --log-level trace \
+            --log-level debug \
             --ping-count 0 \
-            --chunk-size 50 \
-            --max-concurrent-checks 20 \
+            --chunk-size 150 \
+            --max-concurrent-checks 50 \
             --scheme vmess \
             --sources-files sources/sources-vmess.txt \
             --out-file sub/vmess.txt
@@ -62,10 +62,10 @@ jobs:
       - name: Update Shadowsocks configs
         run: |
           ./target/release/novaprox \
-            --log-level trace \
+            --log-level debug \
             --ping-count 0 \
-            --chunk-size 50 \
-            --max-concurrent-checks 20 \
+            --chunk-size 150 \
+            --max-concurrent-checks 50 \
             --scheme ss \
             --sources-files sources/sources-ss.txt \
             --out-file sub/ss.txt
@@ -73,10 +73,10 @@ jobs:
       - name: Update Trojan configs
         run: |
           ./target/release/novaprox \
-            --log-level trace \
+            --log-level debug \
             --ping-count 0 \
-            --chunk-size 50 \
-            --max-concurrent-checks 20 \
+            --chunk-size 150 \
+            --max-concurrent-checks 50 \
             --scheme trojan \
             --sources-files sources/sources-trojan.txt \
             --out-file sub/trojan.txt
@@ -103,7 +103,7 @@ jobs:
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v7
         with:
-          message: "${{ steps.emoji.outputs.emoji }} [${{ steps.date.outputs.date }}] Update novaprox configs"
+          message: "${{ steps.emoji.outputs.emoji }} [${{ steps.date.outputs.date }}] Update subs"
           author_email: "actions@github.com"
           author_name: "GitHub Actions"
           add: "sub/"
