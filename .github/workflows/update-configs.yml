@@ -10,7 +10,7 @@ on:
 
 jobs:
   update-configs:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,9 +40,8 @@ jobs:
         run: |
           ./target/release/novaprox \
             --log-level debug \
-            --ping-count 0 \
-            --chunk-size 60 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme vless \
             --sources-files sources/sources-vless.txt \
             --out-file sub/vless.txt \
@@ -53,9 +52,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --ping-count 0 \
-            --chunk-size 60 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme vmess \
             --sources-files sources/sources-vmess.txt \
             --out-file sub/vmess.txt
@@ -65,9 +63,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --ping-count 0 \
-            --chunk-size 60 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme ss \
             --sources-files sources/sources-ss.txt \
             --out-file sub/ss.txt
@@ -77,9 +74,8 @@ jobs:
           ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --ping-count 0 \
-            --chunk-size 60 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme trojan \
             --sources-files sources/sources-trojan.txt \
             --out-file sub/trojan.txt
