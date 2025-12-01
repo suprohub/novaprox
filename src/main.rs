@@ -58,7 +58,7 @@ struct Args {
     #[arg(long, default_value = "resolved.txt")]
     dns_cache_file: String,
 
-    #[arg(long, default_value_t = 300)]
+    #[arg(long, default_value_t = 700)]
     ping_timeout_ms: u128,
 
     #[arg(long, default_value_t = 100)]
@@ -67,7 +67,7 @@ struct Args {
     #[arg(long, default_value_t = 6)]
     ping_count: usize,
 
-    #[arg(long, default_value_t = 1000)]
+    #[arg(long, default_value_t = 2000)]
     request_timeout_ms: u64,
 
     #[arg(long, default_value_t = 300)]

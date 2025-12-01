@@ -37,10 +37,10 @@ jobs:
         run: |
           sudo ./target/release/novaprox \
             --log-level debug \
-            --chunk-size 50 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme vless \
-            --sources-files sources/sources-vless.txt \
+            --sources-files sources.txt,sources-vless.txt \
             --out-file sub/vless.txt \
             --whitelist-params "security=reality"
 
@@ -49,10 +49,10 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 50 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme vmess \
-            --sources-files sources/sources-vmess.txt \
+            --sources-files sources.txt,sources-vmess.txt \
             --out-file sub/vmess.txt
 
       - name: Update Shadowsocks configs
@@ -60,10 +60,10 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 50 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme ss \
-            --sources-files sources/sources-ss.txt \
+            --sources-files sources.txt,sources-ss.txt \
             --out-file sub/ss.txt
 
       - name: Update Trojan configs
@@ -71,15 +71,15 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 50 \
-            --max-concurrent-checks 15 \
+            --chunk-size 200 \
+            --max-concurrent-checks 50 \
             --scheme trojan \
-            --sources-files sources/sources-trojan.txt \
+            --sources-files sources.txt,sources-trojan.txt \
             --out-file sub/trojan.txt
 
-      - name: Create primary config (first 15 VLESS)
+      - name: Create primary config (first 10 VLESS)
         run: |
-          head -n 15 sub/vless.txt > sub/primary.txt
+          head -n 10 sub/vless.txt > sub/primary.txt
 
       - name: Create all configs combined
         run: |
