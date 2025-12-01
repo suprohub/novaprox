@@ -1,4 +1,4 @@
-vmess://fd291be6-b48d-43a1-da38-66c7f80e2f80@45.136.12.37:38141#Novaprox - 1 [0ms]
+vmess://469e0b31-30c3-4dab-800d-711232634ce1@216.227.168.157:45258#Novaprox - 1 [0ms]
 vmess://e7c302f3-90d6-42dd-9d7d-94a3683a3707@146.56.112.110:8888#Novaprox - 2 [0ms]
 vmess://41a7089a-040b-4538-8b8d-010902405bde@140.238.2.250:443#Novaprox - 3 [0ms]
 vmess://c3c1ec05-df2c-4975-9b42-e9b007564eb1@38.84.201.21:53487#Novaprox - 4 [0ms]
