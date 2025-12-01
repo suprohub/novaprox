@@ -37,53 +37,14 @@ jobs:
         run: |
           sudo ./target/release/novaprox \
             --log-level debug \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
-            --scheme vless \
-            --sources-files sources.txt,sources-vless.txt \
+            --chunk-size 100 \
+            --max-concurrent-checks 25 \
             --out-file sub/vless.txt \
             --whitelist-params "security=reality"
-
-      - name: Update VMess configs
-        run: |
-          sudo ./target/release/novaprox \
-            --log-level debug \
-            -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
-            --scheme vmess \
-            --sources-files sources.txt,sources-vmess.txt \
-            --out-file sub/vmess.txt
-
-      - name: Update Shadowsocks configs
-        run: |
-          sudo ./target/release/novaprox \
-            --log-level debug \
-            -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
-            --scheme ss \
-            --sources-files sources.txt,sources-ss.txt \
-            --out-file sub/ss.txt
-
-      - name: Update Trojan configs
-        run: |
-          sudo ./target/release/novaprox \
-            --log-level debug \
-            -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
-            --scheme trojan \
-            --sources-files sources.txt,sources-trojan.txt \
-            --out-file sub/trojan.txt
-
+        
       - name: Create primary config (first 10 VLESS)
         run: |
           head -n 10 sub/vless.txt > sub/primary.txt
-
-      - name: Create all configs combined
-        run: |
-          cat sub/vless.txt sub/vmess.txt sub/ss.txt sub/trojan.txt > sub/all.txt
 
       - name: Get current date
         id: date

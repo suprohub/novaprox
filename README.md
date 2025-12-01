@@ -14,24 +14,9 @@ All:
 https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/all.txt
 ```
 
-Vless:
+All:
 ```
 https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/vless.txt
-```
-
-Vmess:
-```
-https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/vmess.txt
-```
-
-Shadowsocks:
-```
-https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/ss.txt
-```
-
-Trojan:
-```
-https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/trojan.txt
 ```
 
 ## License
