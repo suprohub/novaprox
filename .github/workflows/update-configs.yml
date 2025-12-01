@@ -10,7 +10,7 @@ on:
 
 jobs:
   update-configs:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             --chunk-size 50 \
-            --max-concurrent-checks 10 \
+            --max-concurrent-checks 15 \
             --scheme vless \
             --sources-files sources/sources-vless.txt \
             --out-file sub/vless.txt \
@@ -50,7 +50,7 @@ jobs:
             --log-level debug \
             -w none \
             --chunk-size 50 \
-            --max-concurrent-checks 10 \
+            --max-concurrent-checks 15 \
             --scheme vmess \
             --sources-files sources/sources-vmess.txt \
             --out-file sub/vmess.txt
@@ -61,7 +61,7 @@ jobs:
             --log-level debug \
             -w none \
             --chunk-size 50 \
-            --max-concurrent-checks 10 \
+            --max-concurrent-checks 15 \
             --scheme ss \
             --sources-files sources/sources-ss.txt \
             --out-file sub/ss.txt
@@ -72,14 +72,14 @@ jobs:
             --log-level debug \
             -w none \
             --chunk-size 50 \
-            --max-concurrent-checks 10 \
+            --max-concurrent-checks 15 \
             --scheme trojan \
             --sources-files sources/sources-trojan.txt \
             --out-file sub/trojan.txt
 
-      - name: Create primary config (first 10 VLESS)
+      - name: Create primary config (first 15 VLESS)
         run: |
-          head -n 10 sub/vless.txt > sub/primary.txt
+          head -n 15 sub/vless.txt > sub/primary.txt
 
       - name: Create all configs combined
         run: |
