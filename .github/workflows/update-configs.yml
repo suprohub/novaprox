@@ -34,7 +34,7 @@ jobs:
           cache: true
 
       - name: Build release binary
-        run: cargo build --release
+        run: CARGO_INCREMENTAL=1 cargo build --release
 
       - name: Update VLESS configs
         run: |
