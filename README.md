@@ -2,16 +2,18 @@
 
 This repository contains free v2ray (xray) configs that are 99.9% alive and no ded.
 
+## Guide
+Default subs from github ci/cd (auto proxy filtering & posting in repo) not good.
+You may live in different coutry with different censor and ping, so better run yourself.
+For run you need download zip from releases, unpack, and start program, but firstly you need install xray from xtls and place in path.
+After running, you get out.txt. Copy it & use)
+
+If not works or no zip in releases you can `git clone` and `cargo run --release`.
 
 ## Subscribitions
 Primary:
 ```
 https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/primary.txt
-```
-
-All:
-```
-https://raw.githubusercontent.com/suprohub/novaprox/refs/heads/main/sub/all.txt
 ```
 
 All:
