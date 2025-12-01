@@ -307,7 +307,7 @@ async fn test_proxies_in_chunks(
         let config = generate_xray_config(chunk, base_port)?;
 
         let mut xray_process = start_xray_with_config(&config).await?;
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        tokio::time::sleep(Duration::from_millis(500)).await;
 
         if let Some(exit) = xray_process.try_wait()? {
             log::warn!("Xray exited: {exit}");

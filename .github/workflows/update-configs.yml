@@ -10,7 +10,7 @@ on:
 
 jobs:
   update-configs:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,8 +37,8 @@ jobs:
         run: |
           sudo ./target/release/novaprox \
             --log-level debug \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
+            --chunk-size 50 \
+            --max-concurrent-checks 10 \
             --scheme vless \
             --sources-files sources/sources-vless.txt \
             --out-file sub/vless.txt \
@@ -49,8 +49,8 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
+            --chunk-size 50 \
+            --max-concurrent-checks 10 \
             --scheme vmess \
             --sources-files sources/sources-vmess.txt \
             --out-file sub/vmess.txt
@@ -60,8 +60,8 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
+            --chunk-size 50 \
+            --max-concurrent-checks 10 \
             --scheme ss \
             --sources-files sources/sources-ss.txt \
             --out-file sub/ss.txt
@@ -71,8 +71,8 @@ jobs:
           sudo ./target/release/novaprox \
             --log-level debug \
             -w none \
-            --chunk-size 200 \
-            --max-concurrent-checks 50 \
+            --chunk-size 50 \
+            --max-concurrent-checks 10 \
             --scheme trojan \
             --sources-files sources/sources-trojan.txt \
             --out-file sub/trojan.txt
