@@ -273,7 +273,11 @@ fn create_reality_settings(query_params: &LiteMap<String, String>) -> Option<Val
 
     for &param in &required {
         if let Some(value) = query_params.get(param) {
-            let clean_value = value.split('=').next().unwrap_or(value);
+            let clean_value = if param == "sid" {
+                normalize_shortid(value)
+            } else {
+                value.split('=').next().unwrap_or(value).to_owned()
+            };
             settings[map_reality_field(param)] = json!(clean_value);
         }
     }
@@ -296,6 +300,21 @@ fn create_reality_settings(query_params: &LiteMap<String, String>) -> Option<Val
     }
 
     Some(settings)
+}
+
+fn normalize_shortid(shortid: &str) -> String {
+    let s = shortid.trim();
+    let s = if s.len() % 2 == 1 {
+        format!("0{s}")
+    } else {
+        s.to_owned()
+    };
+    let s = s.chars().take(16).collect::<String>();
+    if s.chars().all(|c| c.is_ascii_hexdigit()) {
+        s
+    } else {
+        "00".to_owned()
+    }
 }
 
 fn create_tls_settings(query_params: &LiteMap<String, String>) -> Option<Value> {

@@ -62,7 +62,6 @@ jobs:
 
       - name: Update VLESS configs
         run: |
-          ls
           sudo ./target/release/novaprox \
             --log-level debug \
             --chunk-size 100 \
