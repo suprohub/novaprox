@@ -7,7 +7,7 @@ pub fn parse_proxy_url(
     line: &str,
     target_scheme: &str,
     param_filters: &[(&str, &str)],
-    params_remove: &[&str],
+    params_remove: &[(&str, &str)],
 ) -> Option<Url> {
     let cleaned_line = line.replace("amp;", "");
 
@@ -25,13 +25,18 @@ pub fn parse_proxy_url(
             .map(|mut url| {
                 url.set_query(Some(
                     &url.query_pairs()
-                        .filter(|(k, _)| !params_remove.contains(&k.as_ref()))
                         .filter_map(|(k, v)| {
-                            // Fix encryption=none=sometrash\/eeee in urls
-                            // (else xray dont starts)
-                            if v == "none" || (k == "type" && v == "tcp") {
+                            let (k, v) = (k.as_ref(), v.as_ref());
+                            if params_remove.iter().any(|(rk, rv)| {
+                                let (rk, rv) = (*rk, *rv);
+                                (rk == k && rv == "*")
+                                    || (rk == "*" && rv == v)
+                                    || (rk == k && rv == v)
+                            }) {
                                 None
                             } else {
+                                // Fix encryption=none=*some@trash\/eeee in urls
+                                // (else xray dont starts)
                                 Some(format!("{k}={}", v.split('=').next()?))
                             }
                         })

@@ -41,7 +41,7 @@ struct Args {
 
     // Clear ads and other useless trash
     // (sadly what in xhttp path often place ad)
-    #[arg(short, long, default_value = "note,host,spx,authority,path,fp")]
+    #[arg(short, long, default_value = "note,host,spx,authority,path,fp,*=none")]
     remove_params: String,
 
     #[arg(short, long, default_value = "out.txt")]
@@ -89,9 +89,14 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    simple_logger::init_with_level(Level::from_str(&args.log_level.to_uppercase())?).context("Logger initialization failed")?;
+    simple_logger::init_with_level(Level::from_str(&args.log_level.to_uppercase())?)
+        .context("Logger initialization failed")?;
 
-    let param_filters = parse_param_filters(if args.whitelist_params == "none" { "" } else { &args.whitelist_params });
+    let param_filters = parse_param_filters(if args.whitelist_params == "none" {
+        ""
+    } else {
+        &args.whitelist_params
+    });
     let request_timeout = Duration::from_millis(args.request_timeout_ms);
 
     let sources_content = args
@@ -116,7 +121,11 @@ async fn main() -> Result<()> {
                 line,
                 &args.scheme,
                 &param_filters,
-                &args.remove_params.split(',').collect::<Vec<_>>(),
+                &args
+                    .remove_params
+                    .split(',')
+                    .map(|v| v.split_once('=').unwrap_or((v, "*")))
+                    .collect::<Vec<_>>(),
             )
         })
         .collect::<Vec<_>>();

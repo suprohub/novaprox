@@ -11,6 +11,8 @@ on:
 jobs:
   update-configs:
     runs-on: self-hosted
+    env:
+      CARGO_INCREMENTAL: 1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,17 +32,42 @@ jobs:
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Build release binary
+      - name: Check for changes in source code
+        id: check-changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            rust-src:
+              - 'src/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'build.rs'
+
+      - name: Build release binary (if needed)
+        if: steps.check-changes.outputs.rust-src == 'true'
         run: cargo build --release
+      
+      - name: Use existing binary (if no changes)
+        if: steps.check-changes.outputs.rust-src == 'false'
+        run: |
+          echo "Исходный код не изменился, проверяем существующий бинарник..."
+          
+          if [ -f ./target/release/novaprox ]; then
+            echo "✅ Binary file found"
+            ./target/release/novaprox --version || true
+          else
+            echo "⚠️ Binary file not found, building"
+            cargo build --release
+          fi
 
       - name: Update VLESS configs
         run: |
+          ls
           sudo ./target/release/novaprox \
             --log-level debug \
             --chunk-size 100 \
             --max-concurrent-checks 25 \
-            --out-file sub/vless.txt \
-            --whitelist-params "security=reality"
+            --out-file sub/vless.txt
         
       - name: Create primary config (first 10 VLESS)
         run: |
