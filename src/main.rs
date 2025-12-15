@@ -41,7 +41,7 @@ struct Args {
 
     // Clear ads and other useless trash
     // (sadly what in xhttp path often place ad)
-    #[arg(short, long, default_value = "note,host,spx,authority,path,fp,*=none")]
+    #[arg(short, long, default_value = "note,host,spx,authority,path,fp,*=none,*=")]
     remove_params: String,
 
     #[arg(short, long, default_value = "out.txt")]
