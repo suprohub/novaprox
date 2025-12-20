@@ -10,6 +10,9 @@ After running, you get out.txt. Copy it & use)
 
 If not works or no zip in releases you can `git clone` and `cargo run --release`.
 
+## Subs installation guide
+https://telegra.ph/Vless---Android-11-29
+
 ## Subscribitions
 Primary:
 ```
