@@ -26,6 +26,7 @@ pub struct ProxyConfig {
     pub query_params: LiteMap<String, String>,
     pub username: String,
     pub ping: Duration,
+    pub bandwidth: u64,
 }
 
 impl fmt::Display for ProxyConfig {
@@ -37,6 +38,7 @@ impl fmt::Display for ProxyConfig {
             query_params,
             username,
             ping: _,
+            bandwidth: _,
         } = self;
 
         write!(f, "{protocol}://{username}@{address}:{port}")?;
@@ -88,6 +90,7 @@ impl ProxyConfig {
             query_params,
             username: url.username().to_lowercase(),
             ping: Duration::default(),
+            bandwidth: 0,
         }
     }
 }

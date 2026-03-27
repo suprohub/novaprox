@@ -1,14 +1,9 @@
-https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/All_Configs_Sub.txt
-https://raw.githubusercontent.com/barry-far/V2ray-Config/refs/heads/main/All_Configs_Sub.txt
+https://raw.githubusercontent.com/zieng2/wl/main/vless_lite.txt
 
-https://raw.githubusercontent.com/iboxz/free-v2ray-collector/refs/heads/main/main/mix
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/6.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/22.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/23.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/24.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/25.txt
-https://github.com/AvenCores/goida-vpn-configs/raw/refs/heads/main/githubmirror/26.txt
-https://raw.githubusercontent.com/penhandev/AutoAiVPN/refs/heads/main/allConfigs.txt
-https://raw.githubusercontent.com/crackbest/V2ray-Config/refs/heads/main/config.txt
-https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/row-url/all.txt
+https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/WHITE-CIDR-RU-checked.txt
+https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/refs/heads/main/githubmirror/26.txt
+# https://etoneya.a9fm.site/1
+https://gitverse.ru/api/repos/cid-uskoritel/cid-white/raw/branch/master/whitelist.txt
+# https://wlrus.lol/confs/wl.txt
+https://whiteprime.github.io/xraycheck/configs/white-list_available_st
+# https://raw.githubusercontent.com/ByeWhiteLists/ByeWhiteLists2/refs/heads/main/ByeWhiteLists2.txt

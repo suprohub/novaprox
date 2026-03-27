@@ -1,7 +1,7 @@
 use anyhow::{Context as _, Result};
 use clap::Parser;
 use futures::{StreamExt as _, TryFutureExt as _, stream};
-use log::Level;
+use log::LevelFilter;
 use reqwest::{Client, ClientBuilder};
 use std::{
     collections::HashSet, fs, net::IpAddr, process::Stdio, str::FromStr as _, sync::Arc,
@@ -41,18 +41,22 @@ struct Args {
 
     // Clear ads and other useless trash
     // (sadly what in xhttp path often place ad)
-    #[arg(short, long, default_value = "note,host,spx,authority,path,fp,*=none,*=")]
+    #[arg(
+        short,
+        long,
+        default_value = "note,host,spx,authority,path,fp,*=none,*="
+    )]
     remove_params: String,
 
     #[arg(short, long, default_value = "out.txt")]
     out_file: String,
 
     #[cfg(not(debug_assertions))]
-    #[arg(long, default_value = "sources.txt,sources-vless.txt")]
+    #[arg(long, default_value = "sources.txt")]
     sources_files: String,
 
     #[cfg(debug_assertions)]
-    #[arg(long, default_value = "sources-debug.txt")]
+    #[arg(long, default_value = "sources.txt")]
     sources_files: String,
 
     #[arg(long, default_value = "resolved.txt")]
@@ -64,7 +68,7 @@ struct Args {
     #[arg(long, default_value_t = 100)]
     ping_delay: u64,
 
-    #[arg(long, default_value_t = 6)]
+    #[arg(long, default_value_t = 3)]
     ping_count: usize,
 
     #[arg(long, default_value_t = 2000)]
@@ -73,7 +77,7 @@ struct Args {
     #[arg(long, default_value_t = 300)]
     chunk_size: usize,
 
-    #[arg(long, default_value_t = 10808)]
+    #[arg(long, default_value_t = 15808)]
     base_start_port: usize,
 
     #[arg(long, default_value_t = 200)]
@@ -84,13 +88,26 @@ struct Args {
 
     #[arg(long, default_value_t = 50)]
     max_concurrent_dns: usize,
+
+    #[arg(long, default_value_t = 5)]
+    latency_checks: usize,
+
+    #[arg(
+        long,
+        default_value = "discord.com,www.youtube.com,telegram.org,encryptedsni.com,www.roblox.com"
+    )]
+    latency_checklist: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let elapsed = std::time::Instant::now();
     let args = Args::parse();
-    simple_logger::init_with_level(Level::from_str(&args.log_level.to_uppercase())?)
-        .context("Logger initialization failed")?;
+    simple_logger::SimpleLogger::new()
+        .env()
+        .with_level(LevelFilter::from_str(&args.log_level.to_uppercase())?)
+        .without_timestamps()
+        .init()?;
 
     let param_filters = parse_param_filters(if args.whitelist_params == "none" {
         ""
@@ -112,7 +129,7 @@ async fn main() -> Result<()> {
 
     let proxies = get_proxies_from_sources(&sources_content).await?;
 
-    log::info!("Loaded ~{} proxies", proxies.lines().count());
+    log::info!("Loaded {} proxies", proxies.lines().count());
 
     let valid_urls = proxies
         .lines()
@@ -139,49 +156,69 @@ async fn main() -> Result<()> {
 
     log::info!("Resolved {} proxies", resolved_proxies.len());
 
-    let pinged_proxies = if args.ping_count > 0 {
-        let pinged_proxies = ping_proxies(
+    let alive_proxies = if args.ping_count > 0 {
+        let alive = ping_proxies(
             resolved_proxies,
             args.ping_timeout_ms,
             args.ping_delay,
             args.max_concurrent_pings,
-            1,
+            args.ping_count,
         )
         .await;
 
-        log::info!(
-            "Pinged {} proxies, now getting average ping",
-            pinged_proxies.len()
-        );
-
-        let pinged_proxies = ping_proxies(
-            pinged_proxies,
-            args.ping_timeout_ms,
-            args.ping_delay,
-            args.max_concurrent_pings,
-            args.ping_count - 1,
-        )
-        .await;
-
-        log::info!("Pinged {} proxies with average ping", pinged_proxies.len());
-
-        pinged_proxies
+        log::info!("Found {} alive proxies after ping", alive.len());
+        alive
     } else {
         resolved_proxies.into_iter().collect::<Vec<_>>()
     };
 
     let working_proxies = test_proxies_in_chunks(
-        &pinged_proxies,
+        &alive_proxies,
         args.chunk_size,
         args.base_start_port,
         request_timeout,
         args.max_concurrent_checks,
+        args.latency_checks,
+        args.latency_checklist.split(',').collect(),
     )
     .await?;
 
     log::info!("Found {} working proxies", working_proxies.len());
 
-    save_results(&working_proxies, &args.out_file).context("Failed to save results")?;
+    let mut sorted_proxies = working_proxies;
+    sorted_proxies.sort_by(|a, b| {
+        let score_a = a.ping.as_secs_f64() / (a.bandwidth as f64);
+        let score_b = b.ping.as_secs_f64() / (b.bandwidth as f64);
+        score_a
+            .partial_cmp(&score_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    let results = sorted_proxies
+        .iter()
+        .enumerate()
+        .map(|(id, proxy)| {
+            let bandwidth_kbps = proxy.bandwidth / 1024;
+            format!(
+                "{proxy}#Novaprox - {} [{}ms] ({} KB/s)",
+                id + 1,
+                proxy.ping.as_millis(),
+                bandwidth_kbps
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    log::info!(
+        "Time required: {}",
+        humantime::format_duration(elapsed.elapsed())
+    );
+
+    if args.out_file == "none" {
+        println!("{results}");
+    } else {
+        fs::write(args.out_file, results)?;
+    }
 
     Ok(())
 }
@@ -269,32 +306,22 @@ async fn ping_proxies(
     ping_timeout_ms: u128,
     ping_delay: u64,
     max_concurrent_pings: usize,
-    ping_count: usize,
+    max_attempts: usize,
 ) -> Vec<ProxyConfig> {
     stream::iter(proxies)
         .map(|mut proxy| async move {
-            let mut total_duration = Duration::from_millis(0);
-            let mut successful_count = 0;
-
-            for _ in 0..ping_count {
+            for attempt in 0..max_attempts {
                 if let Ok((_, ping)) = surge_ping::ping(proxy.address, &[]).await
                     && ping.as_millis() < ping_timeout_ms
                 {
-                    total_duration += ping;
-                    successful_count += 1;
+                    proxy.ping = Duration::ZERO; // alive, latency will be measured later
+                    return Some(proxy);
                 }
-
-                if ping_count > 1 {
+                if attempt < max_attempts - 1 {
                     tokio::time::sleep(Duration::from_millis(ping_delay)).await;
                 }
             }
-
-            if successful_count > 0 {
-                proxy.ping = total_duration / successful_count as u32;
-                Some(proxy)
-            } else {
-                None
-            }
+            None
         })
         .buffer_unordered(max_concurrent_pings)
         .filter_map(|x| async { x })
@@ -303,15 +330,18 @@ async fn ping_proxies(
 }
 
 async fn test_proxies_in_chunks(
-    pinged_proxies: &[ProxyConfig],
+    alive_proxies: &[ProxyConfig],
     chunk_size: usize,
     base_start_port: usize,
     request_timeout: Duration,
     max_concurrent_checks: usize,
+    latency_checks: usize,
+    latency_checklist: Vec<&str>,
 ) -> Result<Vec<ProxyConfig>> {
     let mut all_working = Vec::new();
+    let total_chunks = alive_proxies.len().div_ceil(chunk_size);
 
-    for (chunk_index, chunk) in pinged_proxies.chunks(chunk_size).enumerate() {
+    for (chunk_index, chunk) in alive_proxies.chunks(chunk_size).enumerate() {
         let base_port = base_start_port + chunk_index * chunk_size;
         let config = generate_xray_config(chunk, base_port)?;
 
@@ -328,14 +358,22 @@ async fn test_proxies_in_chunks(
             continue;
         }
 
-        let working_chunk =
-            test_proxy_chunk(chunk, base_port, request_timeout, max_concurrent_checks).await;
+        let working_chunk = test_proxy_chunk(
+            chunk,
+            base_port,
+            request_timeout,
+            max_concurrent_checks,
+            latency_checks,
+            &latency_checklist,
+        )
+        .await;
         all_working.extend(working_chunk);
+
+        log::info!("Processed chunk {}/{}", chunk_index + 1, total_chunks);
 
         xray_process.kill().await.ok();
     }
 
-    all_working.sort_by(|a, b| a.ping.cmp(&b.ping));
     Ok(all_working)
 }
 
@@ -366,16 +404,15 @@ async fn test_proxy_chunk(
     base_port: usize,
     request_timeout: Duration,
     max_concurrent_checks: usize,
+    latency_checks: usize,
+    latency_checklist: &[&str],
 ) -> Vec<ProxyConfig> {
-    let semaphore = Arc::new(Semaphore::new(max_concurrent_checks));
-
+    let list_len = latency_checklist.len();
     stream::iter(chunk.iter().enumerate())
         .map(|(i, proxy)| {
-            let permit = Arc::clone(&semaphore);
+            let domain = latency_checklist[i % list_len];
             async move {
-                let _permit = permit.acquire().await;
                 let port = base_port + i;
-
                 let proxy_client =
                     reqwest::Proxy::all(format!("socks5://127.0.0.1:{port}")).ok()?;
                 let client = Client::builder()
@@ -384,16 +421,43 @@ async fn test_proxy_chunk(
                     .build()
                     .ok()?;
 
-                client
-                    .get("https://discord.com")
-                    .send()
-                    .await
-                    .ok()
-                    .filter(|response| response.status().is_success())
-                    .map(|_| {
-                        log::debug!("Founded working proxy: {}", proxy.address);
-                        proxy.clone()
-                    })
+                let mut total_duration = Duration::ZERO;
+                let mut total_bytes = 0u64;
+                let mut success_count = 0;
+
+                for _ in 0..latency_checks {
+                    let start = std::time::Instant::now();
+                    if let Ok(resp) = client.get(format!("https://{domain}")).send().await
+                        && resp.status().is_success()
+                        && let Ok(body) = resp.bytes().await
+                    {
+                        let elapsed = start.elapsed();
+                        total_duration += elapsed;
+                        total_bytes += body.len() as u64;
+                        success_count += 1;
+                    }
+                }
+
+                if success_count > 0 {
+                    let avg_latency = total_duration / success_count as u32;
+                    let avg_bandwidth = if total_duration.as_secs_f64() > 0.0 {
+                        (total_bytes as f64 / total_duration.as_secs_f64()) as u64
+                    } else {
+                        0
+                    };
+                    let mut working_proxy = proxy.clone();
+                    working_proxy.ping = avg_latency;
+                    working_proxy.bandwidth = avg_bandwidth;
+                    log::debug!(
+                        "Proxy {} avg latency: {}ms, avg bandwidth: {} B/s",
+                        working_proxy.address,
+                        avg_latency.as_millis(),
+                        avg_bandwidth
+                    );
+                    Some(working_proxy)
+                } else {
+                    None
+                }
             }
         })
         .buffer_unordered(max_concurrent_checks)
@@ -430,25 +494,4 @@ async fn get_proxies_from_sources(sources: &str) -> Result<String> {
         .collect::<Vec<_>>();
 
     Ok(responses.join("\n"))
-}
-
-fn save_results(working_proxies: &[ProxyConfig], results_file: &str) -> Result<()> {
-    let mut sorted_proxies = working_proxies.to_vec();
-    sorted_proxies.sort_by(|a, b| a.ping.cmp(&b.ping));
-
-    let results = sorted_proxies
-        .iter()
-        .enumerate()
-        .map(|(id, proxy)| {
-            log::info!("{}ms - {proxy}", proxy.ping.as_millis());
-            format!(
-                "{proxy}#Novaprox - {} [{}ms]",
-                id + 1,
-                proxy.ping.as_millis()
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    fs::write(results_file, results).context("Failed to write results")
 }
