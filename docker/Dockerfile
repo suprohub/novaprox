@@ -9,8 +9,8 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifica
 COPY build_usr/xray /usr/local/bin/xray
 COPY build_usr/ghcp /usr/local/bin/ghcp
 COPY build_usr/novaprox /usr/local/bin/novaprox
-COPY sources/sources.txt /usr/local/sources.txt
-COPY sources/sources.txt /repo/sources.txt
+COPY build_usr/sources/sources.txt /usr/local/sources.txt
+COPY build_usr/sources/sources.txt /repo/sources.txt
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/novaprox /usr/local/bin/xray /usr/local/bin/ghcp

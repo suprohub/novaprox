@@ -27,6 +27,7 @@ pub struct ProxyConfig {
     pub username: String,
     pub ping: Duration,
     pub bandwidth: u64,
+    pub country: Option<[char; 2]>,
 }
 
 impl fmt::Display for ProxyConfig {
@@ -39,6 +40,7 @@ impl fmt::Display for ProxyConfig {
             username,
             ping: _,
             bandwidth: _,
+            country: _,
         } = self;
 
         write!(f, "{protocol}://{username}@{address}:{port}")?;
@@ -91,6 +93,21 @@ impl ProxyConfig {
             username: url.username().to_lowercase(),
             ping: Duration::default(),
             bandwidth: 0,
+            country: None,
         }
     }
+}
+
+#[must_use]
+pub fn country_code_to_emoji(code: [char; 2]) -> String {
+    let first = match code[0] {
+        'A'..='Z' => code[0] as u32 - 'A' as u32 + 0x1F1E6,
+        _ => return "?".to_string(),
+    };
+    let second = match code[1] {
+        'A'..='Z' => code[1] as u32 - 'A' as u32 + 0x1F1E6,
+        _ => return "?".to_string(),
+    };
+    char::from_u32(first).unwrap_or('�').to_string()
+        + &char::from_u32(second).unwrap_or('�').to_string()
 }

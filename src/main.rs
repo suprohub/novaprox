@@ -1,6 +1,9 @@
 use anyhow::{Context as _, Result};
 use clap::Parser;
-use futures::{StreamExt as _, TryFutureExt as _, stream};
+use futures::{
+    StreamExt as _, TryFutureExt as _,
+    stream::{self},
+};
 use log::LevelFilter;
 use reqwest::{Client, ClientBuilder};
 use std::{
@@ -15,7 +18,9 @@ use tokio::{
 use url::{Host, Url};
 
 use crate::{
-    dns_cache::DnsCache, parse_url::parse_proxy_url, proxy_config::ProxyConfig,
+    dns_cache::DnsCache,
+    parse_url::parse_proxy_url,
+    proxy_config::{ProxyConfig, country_code_to_emoji},
     xray_config::generate_xray_config,
 };
 
@@ -36,7 +41,7 @@ struct Args {
     #[arg(short, long, default_value = "vless")]
     scheme: String,
 
-    #[arg(short, long, default_value = "security=reality")]
+    #[arg(short, long, default_value = "")]
     whitelist_params: String,
 
     // Clear ads and other useless trash
@@ -71,7 +76,7 @@ struct Args {
     #[arg(long, default_value_t = 3)]
     ping_count: usize,
 
-    #[arg(long, default_value_t = 2000)]
+    #[arg(long, default_value_t = 5000)]
     request_timeout_ms: u64,
 
     #[arg(long, default_value_t = 300)]
@@ -89,14 +94,14 @@ struct Args {
     #[arg(long, default_value_t = 50)]
     max_concurrent_dns: usize,
 
-    #[arg(long, default_value_t = 5)]
-    latency_checks: usize,
-
     #[arg(
         long,
-        default_value = "discord.com,www.youtube.com,telegram.org,encryptedsni.com,www.roblox.com"
+        default_value = "2ip.ru@curl/8.4.0,2ip.ru@curl/8.4.0,www.roblox.com,discord.com,www.youtube.com,telegram.org"
     )]
     latency_checklist: String,
+
+    #[arg(long, short, default_value_t = true)]
+    country: bool,
 }
 
 #[tokio::main]
@@ -178,8 +183,11 @@ async fn main() -> Result<()> {
         args.base_start_port,
         request_timeout,
         args.max_concurrent_checks,
-        args.latency_checks,
-        args.latency_checklist.split(',').collect(),
+        args.latency_checklist
+            .split(',')
+            .map(|addr| addr.split_once('@').unwrap_or((addr, "")))
+            .collect(),
+        args.country,
     )
     .await?;
 
@@ -200,7 +208,10 @@ async fn main() -> Result<()> {
         .map(|(id, proxy)| {
             let bandwidth_kbps = proxy.bandwidth / 1024;
             format!(
-                "{proxy}#Novaprox - {} [{}ms] ({} KB/s)",
+                "{proxy}#{} - {} [{}ms] ({} KB/s)",
+                proxy
+                    .country
+                    .map_or_else(|| "Novaprox".to_string(), country_code_to_emoji),
                 id + 1,
                 proxy.ping.as_millis(),
                 bandwidth_kbps
@@ -335,8 +346,8 @@ async fn test_proxies_in_chunks(
     base_start_port: usize,
     request_timeout: Duration,
     max_concurrent_checks: usize,
-    latency_checks: usize,
-    latency_checklist: Vec<&str>,
+    latency_checklist: Vec<(&str, &str)>,
+    country: bool,
 ) -> Result<Vec<ProxyConfig>> {
     let mut all_working = Vec::new();
     let total_chunks = alive_proxies.len().div_ceil(chunk_size);
@@ -363,8 +374,8 @@ async fn test_proxies_in_chunks(
             base_port,
             request_timeout,
             max_concurrent_checks,
-            latency_checks,
             &latency_checklist,
+            country,
         )
         .await;
         all_working.extend(working_chunk);
@@ -404,17 +415,20 @@ async fn test_proxy_chunk(
     base_port: usize,
     request_timeout: Duration,
     max_concurrent_checks: usize,
-    latency_checks: usize,
-    latency_checklist: &[&str],
+    latency_checklist: &[(&str, &str)],
+    country: bool,
 ) -> Vec<ProxyConfig> {
-    let list_len = latency_checklist.len();
     stream::iter(chunk.iter().enumerate())
         .map(|(i, proxy)| {
-            let domain = latency_checklist[i % list_len];
+            let port = base_port + i;
+            let checklist: Vec<(String, String)> = latency_checklist
+                .iter()
+                .map(|(d, ua)| (d.to_string(), ua.to_string()))
+                .collect();
+
             async move {
-                let port = base_port + i;
-                let proxy_client =
-                    reqwest::Proxy::all(format!("socks5://127.0.0.1:{port}")).ok()?;
+                let proxy_url = format!("socks5://127.0.0.1:{port}");
+                let proxy_client = reqwest::Proxy::all(proxy_url).ok()?;
                 let client = Client::builder()
                     .timeout(request_timeout)
                     .proxy(proxy_client)
@@ -425,39 +439,61 @@ async fn test_proxy_chunk(
                 let mut total_bytes = 0u64;
                 let mut success_count = 0;
 
-                for _ in 0..latency_checks {
-                    let start = std::time::Instant::now();
-                    if let Ok(resp) = client.get(format!("https://{domain}")).send().await
-                        && resp.status().is_success()
-                        && let Ok(body) = resp.bytes().await
-                    {
-                        let elapsed = start.elapsed();
-                        total_duration += elapsed;
-                        total_bytes += body.len() as u64;
-                        success_count += 1;
+                for (domain, user_agent) in checklist {
+                    let mut req = client.get(format!("https://{domain}"));
+                    if !user_agent.is_empty() {
+                        req = req.header("User-Agent", user_agent);
                     }
+
+                    let start = std::time::Instant::now();
+                    let Ok(resp) = req.send().await else {
+                        return None;
+                    };
+
+                    if !resp.status().is_success() {
+                        return None;
+                    }
+
+                    let Ok(body) = resp.bytes().await else {
+                        return None;
+                    };
+
+                    let elapsed = start.elapsed();
+                    total_duration += elapsed;
+                    total_bytes += body.len() as u64;
+                    success_count += 1;
                 }
 
-                if success_count > 0 {
-                    let avg_latency = total_duration / success_count as u32;
-                    let avg_bandwidth = if total_duration.as_secs_f64() > 0.0 {
-                        (total_bytes as f64 / total_duration.as_secs_f64()) as u64
-                    } else {
-                        0
-                    };
-                    let mut working_proxy = proxy.clone();
-                    working_proxy.ping = avg_latency;
-                    working_proxy.bandwidth = avg_bandwidth;
-                    log::debug!(
-                        "Proxy {} avg latency: {}ms, avg bandwidth: {} B/s",
-                        working_proxy.address,
-                        avg_latency.as_millis(),
-                        avg_bandwidth
-                    );
-                    Some(working_proxy)
+                let avg_latency = total_duration / success_count as u32;
+                let avg_bandwidth = if total_duration.as_secs_f64() > 0.0 {
+                    (total_bytes as f64 / total_duration.as_secs_f64()) as u64
                 } else {
-                    None
+                    0
+                };
+
+                let mut working_proxy = proxy.clone();
+                working_proxy.ping = avg_latency;
+                working_proxy.bandwidth = avg_bandwidth;
+
+                if country
+                    && let Ok(r) = client.get("https://ipinfo.io/json").send().await
+                    && let Ok(c) = r.text().await
+                    && let Some(mut start) = c.find("\"country\": \"")
+                {
+                    start += 12;
+                    let chars = c[start..start + 2].chars().collect::<Vec<_>>();
+                    working_proxy.country = Some([chars[0], chars[1]]);
+                } else {
+                    return None;
                 }
+
+                log::debug!(
+                    "Proxy {} avg latency: {}ms, avg bandwidth: {} B/s",
+                    working_proxy.address,
+                    avg_latency.as_millis(),
+                    avg_bandwidth
+                );
+                Some(working_proxy)
             }
         })
         .buffer_unordered(max_concurrent_checks)

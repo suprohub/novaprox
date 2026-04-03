@@ -18,8 +18,10 @@ compress_with_upx() {
 BUILD_USR="build_usr"
 mkdir -p "$BUILD_USR"
 
+cp -r ../sources $BUILD_USR/sources
+
 cargo build --release --target aarch64-unknown-linux-musl
-BINARY_PATH="target/aarch64-unknown-linux-musl/release/novaprox"
+BINARY_PATH="../target/aarch64-unknown-linux-musl/release/novaprox"
 if [ ! -f "$BINARY_PATH" ]; then
     echo "Binary not found: $BINARY_PATH"
     exit 1
